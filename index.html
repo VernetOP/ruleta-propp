@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruleta PROPP</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#D9679C">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@600;700&display=swap">
+
+<meta name="description" content="Actividad digital de caldeamiento: gira dos ruedas independientes de cartas de Propp y detenlas para obtener una combinación de actante y función.">
+<style>
+  :root{
+    --pink-50:#FFF6F9;
+    --pink-200:#F9CFE0;
+    --pink-400:#EE9EBE;
+    --pink-600:#D9679C;
+    --aqua-200:#BDEDE3;
+    --aqua-400:#7FD6C4;
+    --aqua-600:#3FAF9B;
+    --ink:#3A2C3C;
+    --ink-soft:#6E5A6E;
+    --paper:#FFFBF9;
+    --card:#FFFFFF;
+    --ring: color-mix(in srgb, var(--pink-400) 55%, var(--aqua-400) 45%);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --pink-50:#241722;
+      --pink-200:#4A2C42;
+      --pink-400:#C97BA4;
+      --pink-600:#F3A9C9;
+      --aqua-200:#1E3A38;
+      --aqua-400:#3FAF9B;
+      --aqua-600:#8FEBDA;
+      --ink:#F6ECF2;
+      --ink-soft:#CBB9C7;
+      --paper:#1B1220;
+      --card:#241726;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --pink-50:#241722;
+    --pink-200:#4A2C42;
+    --pink-400:#C97BA4;
+    --pink-600:#F3A9C9;
+    --aqua-200:#1E3A38;
+    --aqua-400:#3FAF9B;
+    --aqua-600:#8FEBDA;
+    --ink:#F6ECF2;
+    --ink-soft:#CBB9C7;
+    --paper:#1B1220;
+    --card:#241726;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(1100px 520px at 12% -8%, var(--pink-200) 0%, transparent 60%),
+      radial-gradient(1100px 520px at 90% 6%, var(--aqua-200) 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Nunito Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    padding:14px 14px 22px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .wrap{ width:100%; max-width:760px; display:flex; flex-direction:column; gap:12px; }
+
+  .eyebrow{
+    text-align:center;
+    font-size:11px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:700;
+  }
+
+  header.hero{
+    padding:10px 16px;
+    border-radius:20px;
+    background:linear-gradient(135deg, var(--pink-200), var(--aqua-200));
+    border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  header.hero:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+  .logo-badge{
+    width:46px; height:46px; border-radius:50%; overflow:hidden;
+    border:2px solid color-mix(in srgb, var(--card) 80%, transparent);
+    box-shadow:0 4px 12px -4px color-mix(in srgb, var(--ink) 45%, transparent);
+    flex-shrink:0;
+  }
+  .logo-badge img{ width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.16); }
+  .hero-text{ display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
+  h1{
+    font-family:"Baloo 2", "Nunito Sans", ui-sans-serif, sans-serif;
+    font-weight:700;
+    font-size:clamp(19px, 4.6vw, 27px);
+    margin:0;
+    line-height:1.1;
+    color:var(--ink);
+    text-wrap:balance;
+  }
+  h1 .accent{ color:var(--pink-600); }
+  .subtitle{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:600;
+    font-size:clamp(11px, 2.4vw, 13px);
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .hero-hint{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin:2px 0 0;
+    display:flex; align-items:center; gap:4px;
+  }
+  .hero-hint .ico{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:13px; height:13px; border-radius:50%;
+    background:color-mix(in srgb, var(--ink) 30%, transparent);
+    color:var(--card); font-size:9.5px; font-weight:700; font-family:"Baloo 2",sans-serif;
+  }
+
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:50;
+    background:color-mix(in srgb, var(--ink) 50%, transparent);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal-card{
+    position:relative;
+    background:var(--card);
+    border-radius:20px;
+    padding:22px 20px 20px;
+    max-width:420px; width:100%;
+    box-shadow:0 20px 50px -20px color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+  .modal-title{
+    font-family:"Baloo 2", sans-serif; font-weight:700; font-size:17px;
+    margin:0 0 8px; color:var(--ink);
+  }
+  .modal-text{ font-size:14px; line-height:1.55; color:var(--ink-soft); margin:0; }
+  .modal-text b{ color:var(--ink); }
+  .modal-close{
+    position:absolute; top:10px; right:10px;
+    width:28px; height:28px; border-radius:50%; border:none;
+    background:color-mix(in srgb, var(--ink) 10%, transparent);
+    color:var(--ink); font-size:14px; cursor:pointer; line-height:1;
+  }
+
+  .stage{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:480px){
+    .stage{ grid-template-columns:1fr; }
+  }
+
+  .reel-col{ display:flex; flex-direction:column; gap:7px; align-items:center; }
+  .reel-label{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .reel-label .dot{
+    display:inline-block; width:8px; height:8px; border-radius:50%;
+    margin-right:6px; vertical-align:middle;
+  }
+  .reel-col.a .dot{ background:var(--pink-600); }
+  .reel-col.f .dot{ background:var(--aqua-600); }
+
+  .reel-frame{
+    position:relative;
+    width:100%;
+    max-width:225px;
+    aspect-ratio:3/4;
+    border-radius:20px;
+    background:var(--card);
+    border:3px solid color-mix(in srgb, var(--ink) 10%, transparent);
+    overflow:hidden;
+    box-shadow:0 10px 26px -14px color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  .reel-frame.spinning{ animation:wobble 320ms ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .reel-frame.spinning{ animation:none; } }
+  @keyframes wobble{
+    0%,100%{ transform:rotate(0deg); }
+    50%{ transform:rotate(0.6deg); }
+  }
+  .reel-frame img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    display:block;
+  }
+  .reel-frame.locked{
+    border-color:var(--ring);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--ring) 35%, transparent), 0 14px 30px -14px color-mix(in srgb, var(--ink) 40%, transparent);
+  }
+  .reel-frame .glow{
+    position:absolute; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--ring) 55%, transparent), transparent 65%);
+    transition:opacity .5s ease;
+  }
+  .reel-frame.locked .glow{ opacity:1; }
+
+  .reel-frame.locked{ cursor:pointer; }
+  .reel-frame:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+  .info-badge{
+    position:absolute; top:8px; right:8px;
+    width:24px; height:24px; border-radius:50%;
+    background:color-mix(in srgb, var(--ink) 55%, transparent);
+    color:#fff; font-family:"Baloo 2", sans-serif; font-weight:700; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transform:scale(.7); transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+  }
+  .reel-frame.locked .info-badge{ opacity:.92; transform:scale(1); }
+  .reel-frame.desc-open .info-badge{ opacity:0; }
+
+  .desc-overlay{
+    position:absolute; inset:0;
+    padding:16px 16px 14px;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--ink) 10%, transparent) 0%, color-mix(in srgb, var(--ink) 94%, transparent) 42%);
+    color:#fff;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .reel-frame.desc-open .desc-overlay{ opacity:1; pointer-events:auto; }
+  .desc-overlay .desc-title{
+    font-family:"Baloo 2", sans-serif; font-weight:700; font-size:15px; margin:0 0 6px;
+  }
+  .desc-overlay .desc-text{
+    font-size:12.5px; line-height:1.48; margin:0; max-height:100%; overflow-y:auto;
+  }
+  .desc-overlay .desc-hint{
+    font-size:10.5px; opacity:.75; margin-top:8px; text-transform:uppercase; letter-spacing:.04em;
+  }
+
+  .reel-name{
+    min-height:18px;
+    font-weight:700;
+    font-size:13px;
+    text-align:center;
+    color:var(--ink);
+  }
+
+  .jump-row{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    flex-wrap:wrap;
+  }
+  .jump-label{
+    font-size:11px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .jump-input{
+    width:50px;
+    padding:5px 6px;
+    border-radius:9px;
+    border:1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+    font-family:inherit;
+    font-size:12.5px;
+    text-align:center;
+    background:var(--card);
+    color:var(--ink);
+  }
+  .jump-input:focus-visible{ outline:2px solid var(--ring); outline-offset:1px; }
+  .jump-btn{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:11.5px;
+    padding:5px 12px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    color:#fff;
+  }
+  .reel-col.a .jump-btn{ background:var(--pink-600); }
+  .reel-col.f .jump-btn{ background:var(--aqua-600); color:#153b34; }
+  .jump-btn:active{ transform:scale(.96); }
+
+  .controls{
+    display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:0;
+  }
+  button.btn{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.01em;
+    padding:11px 26px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    color:#fff;
+    transition:transform .15s ease, filter .15s ease, opacity .15s ease;
+  }
+  button.btn:active{ transform:scale(.97); }
+  button.btn:disabled{ opacity:.45; cursor:not-allowed; }
+  #btnGirar{ background:linear-gradient(135deg, var(--pink-600), var(--pink-400)); }
+  #btnParar{ background:linear-gradient(135deg, var(--aqua-600), var(--aqua-400)); color:#153b34; }
+  button.btn:not(:disabled):hover{ filter:brightness(1.05); }
+
+  .result{
+    text-align:center;
+    border-radius:16px;
+    padding:12px 16px;
+    background:var(--card);
+    border:1px dashed color-mix(in srgb, var(--ink) 18%, transparent);
+    font-size:14px;
+    color:var(--ink-soft);
+    min-height:22px;
+  }
+  .result.ready{
+    border-style:solid;
+    border-color:var(--ring);
+    background:linear-gradient(135deg, color-mix(in srgb, var(--pink-200) 70%, var(--card)), color-mix(in srgb, var(--aqua-200) 70%, var(--card)));
+    color:var(--ink);
+  }
+  .result strong{ font-family:"Baloo 2", sans-serif; }
+  .result .prompt{
+    display:block; margin-top:6px; font-style:italic; font-size:13.5px; color:var(--ink-soft);
+  }
+
+  footer{
+    text-align:center;
+    padding-top:2px;
+    display:flex; flex-direction:column; gap:6px; align-items:center;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .contact-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; }
+  .contact-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--card); border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    border-radius:999px; padding:6px 12px; font-weight:600; color:var(--ink);
+  }
+  .contact-chip button{
+    border:none; background:transparent; cursor:pointer; color:var(--ink-soft);
+    font-size:12px; padding:2px 4px; font-family:inherit;
+  }
+  .contact-chip button:hover{ color:var(--pink-600); }
+  .school{ font-weight:700; color:var(--ink); }
+</style>
+<style>
+  header.hero{background:none!important;border:none!important;flex-direction:column!important;gap:0!important;padding:6px 8px 4px!important;text-align:center}
+  header.hero .school-top{font-family:Inter,"Nunito Sans",sans-serif;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+  header.hero .brand{font-family:Fraunces,serif;font-size:15px;color:var(--brand);margin-top:4px;font-weight:500}
+  header.hero .brand sup{font-size:.65em}
+  header.hero h1{font-family:Fraunces,serif!important;font-weight:700;font-size:clamp(30px,5vw,44px)!important;margin:6px 0 0;letter-spacing:-.01em}
+  header.hero .subtitle{margin-top:2px}
+  header.hero .hero-hint{justify-content:center;margin-top:4px}
+  html{background:var(--paper);min-height:100%}
+  body{min-height:100vh;background-attachment:fixed!important}
+  :root{--brand:#6b2e7a}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--brand:#F3A9C9} }
+  :root[data-theme="dark"]{--brand:#F3A9C9}
+</style>
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito+Sans:wght@400;600;700&display=swap">
+
+<div class="wrap">
+  <header class="hero" id="heroBtn" tabindex="0" role="button" aria-haspopup="dialog" aria-controls="infoBackdrop" aria-label="Ruleta PROPP. Toca para ver cómo se usa">
+    <div class="school-top">Escuela de Sociopsicodrama de las Américas</div>
+    <div class="brand">VernetO Psicodrama<sup>®</sup></div>
+    <h1>Ruleta <span class="accent">PROPP</span></h1>
+    <p class="subtitle">un juego con la espontaneidad</p>
+    <p class="hero-hint"><span class="ico" aria-hidden="true">i</span>Toca aquí para ver cómo se usa</p>
+  </header>
+
+  <div class="modal-backdrop" id="infoBackdrop">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button type="button" class="modal-close" id="infoClose" aria-label="Cerrar">✕</button>
+      <p class="modal-title" id="infoTitle">Cómo se usa</p>
+      <p class="modal-text">Presiona <b>Girar</b> y las dos ruedas —actantes y funciones— empiezan a moverse solas, al azar y de manera independiente. Cuando quieras, presiona <b>Detener</b> y se frena la combinación que te tocó: un actante y una función de Propp para llevar a la escena. Una vez detenida, toca cualquiera de las dos cartas para ver su descripción. También puedes escribir un número debajo de cada rueda y presionar «Ir» para elegir esa carta directamente, sin girar: las 31 funciones llevan su propio número de Propp, y los 7 actantes están numerados así — <b>1</b> Villana, <b>2</b> Donante, <b>3</b> Objeto Mágico, <b>4</b> Príncipe, <b>5</b> Rey, <b>6</b> Heroína, <b>7</b> Falsa Heroína.</p>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="reel-col a">
+      <div class="reel-label"><span class="dot"></span>Actante</div>
+      <div class="reel-frame" id="frameA" tabindex="0" role="button" aria-label="Carta de actante, toca para ver la descripción">
+        <img id="imgA" alt="">
+        <div class="glow"></div>
+        <div class="info-badge" aria-hidden="true">i</div>
+        <div class="desc-overlay" id="descA">
+          <p class="desc-title" id="descTitleA">&nbsp;</p>
+          <p class="desc-text" id="descTextA"></p>
+          <p class="desc-hint">Toca para cerrar</p>
+        </div>
+      </div>
+      <div class="reel-name" id="nameA">&nbsp;</div>
+      <div class="jump-row">
+        <label for="numA" class="jump-label">Ir a la carta N°</label>
+        <input type="number" id="numA" class="jump-input" min="1" max="7" placeholder="1–7" inputmode="numeric">
+        <button type="button" class="jump-btn" id="btnJumpA">Ir</button>
+      </div>
+    </div>
+    <div class="reel-col f">
+      <div class="reel-label"><span class="dot"></span>Función</div>
+      <div class="reel-frame" id="frameF" tabindex="0" role="button" aria-label="Carta de función, toca para ver la descripción">
+        <img id="imgF" alt="">
+        <div class="glow"></div>
+        <div class="info-badge" aria-hidden="true">i</div>
+        <div class="desc-overlay" id="descF">
+          <p class="desc-title" id="descTitleF">&nbsp;</p>
+          <p class="desc-text" id="descTextF"></p>
+          <p class="desc-hint">Toca para cerrar</p>
+        </div>
+      </div>
+      <div class="reel-name" id="nameF">&nbsp;</div>
+      <div class="jump-row">
+        <label for="numF" class="jump-label">Ir a la carta N°</label>
+        <input type="number" id="numF" class="jump-input" min="1" max="31" placeholder="1–31" inputmode="numeric">
+        <button type="button" class="jump-btn" id="btnJumpF">Ir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btnGirar">Girar</button>
+    <button class="btn" id="btnParar" disabled>Detener</button>
+  </div>
+
+  <div class="result" id="result">Presiona «Girar» para empezar una ronda.</div>
+
+  <footer>
+    <div class="school">Escuela de Sociopsicodrama de las Américas · VernetO Psicodrama®</div>
+    <div class="contact-row">
+      <span class="contact-chip">@verneto.psicodrama <button type="button" data-copy="@verneto.psicodrama" title="Copiar">copiar</button></span>
+      <span class="contact-chip">grupos@verneto.com.ar <button type="button" data-copy="grupos@verneto.com.ar" title="Copiar">copiar</button></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var WHEEL_DATA = {"actantes": [{"id": "villana", "name": "Villana", "src": "cartas/villana.webp", "desc": "Perturba la paz inicial, provoca la fechoría y se opone al deseo del protagonista. Puede ser una persona, una circunstancia o una fuerza interna. En escena: ¿qué fuerza se opone, y cómo actúa?", "num": 1}, {"id": "donante", "name": "Donante", "src": "cartas/donante.webp", "desc": "Somete al héroe a una prueba, un interrogatorio o un pedido y, según cómo responda, le hace llegar el recurso que va a necesitar más adelante. En escena: ¿qué prueba tuviste que atravesar?", "num": 2}, {"id": "objeto_magico", "name": "Objeto Mágico", "src": "cartas/objeto_magico.webp", "desc": "Es el recurso —objeto, cualidad o aliado— que el donante pone a disposición del héroe y que le permite resolver la fechoría o alcanzar lo buscado. En escena: ¿qué te sostiene hoy?", "num": 3}, {"id": "principe", "name": "Príncipe", "src": "cartas/principe.webp", "desc": "Representa la meta de la búsqueda: la persona, el vínculo o la situación que el héroe busca alcanzar, recuperar o merecer al final del recorrido. En escena: ¿qué estás buscando en el fondo?", "num": 4}, {"id": "rey", "name": "Rey", "src": "cartas/rey.webp", "desc": "Divulga la noticia de la fechoría o la carencia y encomienda al héroe la misión, con una orden, un pedido o una súplica. En escena: ¿a qué mandato estás respondiendo?", "num": 5}, {"id": "heroina", "name": "Heroína", "src": "cartas/heroina.webp", "desc": "Protagoniza la búsqueda o padece la fechoría inicial, y debe restablecer el equilibrio roto. Propp distingue al héroe-buscador del héroe-víctima. En escena: es el lugar de la iniciativa y del deseo.", "num": 6}, {"id": "falsa_heroina", "name": "Falsa Heroína", "src": "cartas/falsa_heroina.webp", "desc": "Hacia el final del relato, reivindica para sí méritos que no le corresponden, y será desenmascarada antes del desenlace. En escena: ¿quién se atribuye un mérito que no es suyo?", "num": 7}], "funciones": [{"id": "f1", "num": 1, "name": "Alejamiento", "src": "cartas/f1.webp", "desc": "Uno de los miembros de la familia se aleja del hogar. En escena: ¿quién se aleja, de qué o de quién, y qué deja atrás?"}, {"id": "f2", "num": 2, "name": "Prohibición", "src": "cartas/f2.webp", "desc": "Sobre el protagonista recae una prohibición o un mandato de no hacer. En escena: ¿qué límite te fue impuesto, y por quién?"}, {"id": "f3", "num": 3, "name": "Transgresión", "src": "cartas/f3.webp", "desc": "La prohibición es transgredida. En escena: incorpora el quiebre del límite. ¿Qué se abre a partir de ahí?"}, {"id": "f4", "num": 4, "name": "Interrogatorio", "src": "cartas/f4.webp", "desc": "El agresor intenta obtener información sobre su futura víctima. En escena: ¿quién pregunta, y qué busca averiguar?"}, {"id": "f5", "num": 5, "name": "Información", "src": "cartas/f5.webp", "desc": "El agresor obtiene la información que buscaba, a veces por una imprudencia de la propia víctima. En escena: ¿qué se reveló, y cómo?"}, {"id": "f6", "num": 6, "name": "Engaño", "src": "cartas/f6.webp", "desc": "El agresor intenta engañar a su víctima para apoderarse de ella o de sus bienes. En escena: ¿qué máscara toma el agresor para acercarse?"}, {"id": "f7", "num": 7, "name": "Complicidad", "src": "cartas/f7.webp", "desc": "La víctima, sin quererlo, cae en el engaño y ayuda así a su enemigo. En escena: ¿en qué te dejaste convencer, aun a tu pesar?"}, {"id": "f8", "num": 8, "name": "Fechoría", "src": "cartas/f8.webp", "desc": "El agresor causa un daño a la familia, o bien algo le falta a uno de sus miembros: es la función que pone en marcha el conflicto. En escena: nombra el daño o la carencia que inaugura la búsqueda."}, {"id": "f9", "num": 9, "name": "Mediación", "src": "cartas/f9.webp", "desc": "Se divulga la noticia de la fechoría o la carencia; alguien se dirige al héroe con una pregunta, una orden o un llamado. En escena: ¿quién te convoca a actuar, y cómo llega ese llamado?"}, {"id": "f10", "num": 10, "name": "Principio de la acción contraria", "src": "cartas/f10.webp", "desc": "El héroe-buscador acepta la misión y decide actuar. En escena: marca el momento exacto en que decides partir."}, {"id": "f11", "num": 11, "name": "Partida", "src": "cartas/f11.webp", "desc": "El héroe se va de su casa. En escena: acciona la salida. ¿Qué cuerpo, qué paso, qué gesto tiene esa partida?"}, {"id": "f12", "num": 12, "name": "Primera función del donante", "src": "cartas/f12.webp", "desc": "El héroe atraviesa una prueba, un cuestionario o un pedido que lo prepara para recibir un objeto o un auxiliar mágico. En escena: ¿qué prueba se te presenta en el camino?"}, {"id": "f13", "num": 13, "name": "Reacción del héroe", "src": "cartas/f13.webp", "desc": "El héroe responde a las acciones del futuro donante, para bien o para mal. En escena: ¿cómo reaccionas ante lo que se te pide?"}, {"id": "f14", "num": 14, "name": "Recepción del objeto mágico", "src": "cartas/f14.webp", "desc": "El objeto o el auxiliar mágico pasa a disposición del héroe. En escena: recibe el recurso. ¿Qué forma tiene, y qué te permite hacer?"}, {"id": "f15", "num": 15, "name": "Desplazamiento", "src": "cartas/f15.webp", "desc": "El héroe es trasladado o conducido hasta el lugar donde se encuentra lo que busca. En escena: ¿cómo se traslada tu protagonista hacia la meta?"}, {"id": "f16", "num": 16, "name": "Combate", "src": "cartas/f16.webp", "desc": "El héroe y su agresor se enfrentan directamente. En escena: sostén el enfrentamiento en el cuerpo, sin resolverlo todavía."}, {"id": "f17", "num": 17, "name": "Marca", "src": "cartas/f17.webp", "desc": "El héroe recibe una marca, una herida o una señal que lo identificará después. En escena: ¿qué marca queda en ti después del combate?"}, {"id": "f18", "num": 18, "name": "Victoria", "src": "cartas/f18.webp", "desc": "El agresor es vencido. En escena: ¿cómo se nota, en el cuerpo, que ganaste?"}, {"id": "f19", "num": 19, "name": "Reparación", "src": "cartas/f19.webp", "desc": "La fechoría inicial es reparada, o la carencia queda colmada. En escena: nombra qué quedó restituido."}, {"id": "f20", "num": 20, "name": "La vuelta", "src": "cartas/f20.webp", "desc": "El héroe emprende el regreso. En escena: ¿con qué te vuelves, y hacia dónde?"}, {"id": "f21", "num": 21, "name": "Persecución", "src": "cartas/f21.webp", "desc": "El héroe es perseguido en su regreso. En escena: ¿quién o qué te sigue de cerca?"}, {"id": "f22", "num": 22, "name": "Socorro", "src": "cartas/f22.webp", "desc": "El héroe recibe auxilio frente a esa persecución. En escena: ¿quién te socorre, y cómo llega la ayuda?"}, {"id": "f23", "num": 23, "name": "Llegada de incógnito", "src": "cartas/f23.webp", "desc": "El héroe llega sin ser reconocido, a su casa o a otro lugar. En escena: ¿qué parte de lo vivido todavía no muestras?"}, {"id": "f24", "num": 24, "name": "Pretensiones engañosas", "src": "cartas/f24.webp", "desc": "Un falso héroe reclama para sí los méritos que no le corresponden. En escena: ¿quién se atribuye tu logro?"}, {"id": "f25", "num": 25, "name": "Tarea difícil", "src": "cartas/f25.webp", "desc": "Se le propone al héroe una prueba de gran exigencia. En escena: ¿qué se te exige ahora, ya de vuelta?"}, {"id": "f26", "num": 26, "name": "Tarea cumplida", "src": "cartas/f26.webp", "desc": "La tarea difícil es realizada. En escena: muestra cómo se resuelve, en el cuerpo."}, {"id": "f27", "num": 27, "name": "Reconocimiento", "src": "cartas/f27.webp", "desc": "El héroe es finalmente reconocido como tal. En escena: ¿quién te reconoce, y con qué gesto o palabra?"}, {"id": "f28", "num": 28, "name": "Descubrimiento", "src": "cartas/f28.webp", "desc": "El falso héroe o el agresor quedan desenmascarados. En escena: ¿qué queda al descubierto?"}, {"id": "f29", "num": 29, "name": "Transfiguración", "src": "cartas/f29.webp", "desc": "El héroe recibe una nueva apariencia. En escena: ¿cómo cambió tu protagonista después de todo el recorrido?"}, {"id": "f30", "num": 30, "name": "Castigo", "src": "cartas/f30.webp", "desc": "El falso héroe o el agresor reciben su castigo. En escena: ¿qué consecuencia alcanza a quien dañó?"}, {"id": "f31", "num": 31, "name": "Matrimonio", "src": "cartas/f31.webp", "desc": "El héroe se casa y asciende al trono: es la recompensa final que cierra el relato. En escena: ¿cómo se corona, hoy, tu proceso?"}]};
+  var actantes = WHEEL_DATA.actantes;
+  var funciones = WHEEL_DATA.funciones;
+
+  var imgA = document.getElementById('imgA');
+  var imgF = document.getElementById('imgF');
+  var nameA = document.getElementById('nameA');
+  var nameF = document.getElementById('nameF');
+  var frameA = document.getElementById('frameA');
+  var frameF = document.getElementById('frameF');
+  var btnGirar = document.getElementById('btnGirar');
+  var btnParar = document.getElementById('btnParar');
+  var resultEl = document.getElementById('result');
+  var descTitleA = document.getElementById('descTitleA');
+  var descTextA = document.getElementById('descTextA');
+  var descTitleF = document.getElementById('descTitleF');
+  var descTextF = document.getElementById('descTextF');
+  var heroBtn = document.getElementById('heroBtn');
+  var infoBackdrop = document.getElementById('infoBackdrop');
+  var infoClose = document.getElementById('infoClose');
+  var inputA = document.getElementById('numA');
+  var inputF = document.getElementById('numF');
+  var btnJumpA = document.getElementById('btnJumpA');
+  var btnJumpF = document.getElementById('btnJumpF');
+
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function openInfo(){ infoBackdrop.classList.add('open'); }
+  function closeInfo(){ infoBackdrop.classList.remove('open'); }
+  heroBtn.addEventListener('click', openInfo);
+  heroBtn.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openInfo(); }
+  });
+  infoClose.addEventListener('click', closeInfo);
+  infoBackdrop.addEventListener('click', function(e){
+    if (e.target === infoBackdrop) closeInfo();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeInfo();
+  });
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function paint(imgEl, item){
+    imgEl.src = item.src;
+    imgEl.alt = item.name;
+  }
+
+  var timerA = null, timerF = null;
+  var spinning = false;
+  var currentA = actantes[0], currentF = funciones[0];
+
+  paint(imgA, currentA);
+  paint(imgF, currentF);
+
+  function startReel(setTimer, imgEl, arr, baseDelay){
+    function tick(){
+      var item = pick(arr);
+      paint(imgEl, item);
+      setTimer(window.setTimeout(tick, baseDelay + Math.random()*70));
+    }
+    tick();
+  }
+
+  var timerARef = { id: null };
+  var timerFRef = { id: null };
+
+  function spinLoopA(){
+    var item = pick(actantes);
+    paint(imgA, item);
+    timerARef.id = window.setTimeout(spinLoopA, 90 + Math.random()*60);
+  }
+  function spinLoopF(){
+    var item = pick(funciones);
+    paint(imgF, item);
+    timerFRef.id = window.setTimeout(spinLoopF, 110 + Math.random()*80);
+  }
+
+  function girar(){
+    if (spinning) return;
+    spinning = true;
+    resultEl.classList.remove('ready');
+    resultEl.textContent = 'Girando…';
+    nameA.innerHTML = '&nbsp;';
+    nameF.innerHTML = '&nbsp;';
+    frameA.classList.remove('locked');
+    frameF.classList.remove('locked');
+    frameA.classList.remove('desc-open');
+    frameF.classList.remove('desc-open');
+    frameA.classList.add('spinning');
+    frameF.classList.add('spinning');
+    btnGirar.disabled = true;
+    btnParar.disabled = false;
+
+    if (reduced){
+      currentA = pick(actantes);
+      currentF = pick(funciones);
+      paint(imgA, currentA);
+      paint(imgF, currentF);
+    } else {
+      spinLoopA();
+      spinLoopF();
+    }
+  }
+
+  function settleReel(timerRef, imgEl, arr, onDone){
+    window.clearTimeout(timerRef.id);
+    var delays = [70,90,120,160,210,270,340];
+    var i = 0;
+    function step(){
+      var item = pick(arr);
+      paint(imgEl, item);
+      if (i < delays.length){
+        window.setTimeout(step, delays[i]);
+        i++;
+      } else {
+        onDone(item);
+      }
+    }
+    step();
+  }
+
+  function applyResult(which, item){
+    if (which === 'A'){
+      window.clearTimeout(timerARef.id);
+      currentA = item;
+      paint(imgA, item);
+      frameA.classList.remove('spinning');
+      frameA.classList.add('locked');
+      frameA.classList.remove('desc-open');
+      nameA.textContent = item.num + '. ' + item.name;
+      descTitleA.textContent = item.name;
+      descTextA.textContent = item.desc || '';
+    } else {
+      window.clearTimeout(timerFRef.id);
+      currentF = item;
+      paint(imgF, item);
+      frameF.classList.remove('spinning');
+      frameF.classList.add('locked');
+      frameF.classList.remove('desc-open');
+      nameF.textContent = 'Función ' + item.num + '. ' + item.name;
+      descTitleF.textContent = 'Función ' + item.num + '. ' + item.name;
+      descTextF.textContent = item.desc || '';
+    }
+    if (frameA.classList.contains('locked') && frameF.classList.contains('locked')){
+      spinning = false;
+      btnParar.disabled = true;
+      finish();
+    }
+  }
+
+  function parar(){
+    if (!spinning) return;
+    spinning = false;
+    btnParar.disabled = true;
+
+    if (reduced){
+      finish();
+      return;
+    }
+
+    if (!frameA.classList.contains('locked')){
+      settleReel(timerARef, imgA, actantes, function(item){ applyResult('A', item); });
+    }
+    if (!frameF.classList.contains('locked')){
+      settleReel(timerFRef, imgF, funciones, function(item){ applyResult('F', item); });
+    }
+    if (frameA.classList.contains('locked') && frameF.classList.contains('locked')){
+      finish();
+    }
+  }
+
+  function jumpTo(which){
+    var input = which === 'A' ? inputA : inputF;
+    var arr = which === 'A' ? actantes : funciones;
+    var max = which === 'A' ? 7 : 31;
+    var n = parseInt(input.value, 10);
+    if (!n || n < 1 || n > max){
+      input.focus();
+      return;
+    }
+    var item = null;
+    for (var i = 0; i < arr.length; i++){
+      if (arr[i].num === n){ item = arr[i]; break; }
+    }
+    if (!item) return;
+
+    resultEl.classList.remove('ready');
+    btnGirar.disabled = false;
+    applyResult(which, item);
+
+    if (!(frameA.classList.contains('locked') && frameF.classList.contains('locked'))){
+      resultEl.textContent = 'Elegiste: ' + item.name + '. Elige también la otra carta (girando o con su recuadro de número), o presiona «Girar» para una combinación al azar.';
+    }
+  }
+
+  btnJumpA.addEventListener('click', function(){ jumpTo('A'); });
+  btnJumpF.addEventListener('click', function(){ jumpTo('F'); });
+  [ [inputA,'A'], [inputF,'F'] ].forEach(function(pair){
+    pair[0].addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); jumpTo(pair[1]); }
+    });
+  });
+
+  function finish(){
+    if (reduced){
+      frameA.classList.add('locked');
+      frameF.classList.add('locked');
+      nameA.textContent = currentA.num + '. ' + currentA.name;
+      nameF.textContent = 'Función ' + currentF.num + '. ' + currentF.name;
+      descTitleA.textContent = currentA.name;
+      descTextA.textContent = currentA.desc || '';
+      descTitleF.textContent = 'Función ' + currentF.num + '. ' + currentF.name;
+      descTextF.textContent = currentF.desc || '';
+    }
+    btnGirar.disabled = false;
+    btnGirar.textContent = 'Girar de nuevo';
+    resultEl.classList.add('ready');
+    resultEl.innerHTML = 'Te tocó: <strong>' + currentA.name + '</strong> + <strong>Función ' + currentF.num + '. ' + currentF.name + '</strong>' +
+      '<span class="prompt">Sostén la escena desde ahí: soy ' + currentA.name.toLowerCase() + ', y me atraviesa: ' + currentF.name.toLowerCase() + '.</span>';
+  }
+
+  btnGirar.addEventListener('click', girar);
+  btnParar.addEventListener('click', parar);
+
+  function toggleDesc(frame){
+    if (!frame.classList.contains('locked')) return;
+    frame.classList.toggle('desc-open');
+  }
+  frameA.addEventListener('click', function(){ toggleDesc(frameA); });
+  frameF.addEventListener('click', function(){ toggleDesc(frameF); });
+  [frameA, frameF].forEach(function(frame){
+    frame.addEventListener('keydown', function(e){
+      if ((e.key === 'Enter' || e.key === ' ') && frame.classList.contains('locked')){
+        e.preventDefault();
+        toggleDesc(frame);
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var text = btn.getAttribute('data-copy');
+      var original = btn.textContent;
+      function done(){ btn.textContent = '¡copiado!'; setTimeout(function(){ btn.textContent = original; }, 1400); }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(function(){
+          done();
+        });
+      } else {
+        done();
+      }
+    });
+  });
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}</script>
+</body>
+</html>
